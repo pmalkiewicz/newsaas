@@ -10,7 +10,6 @@ variable "name" {
 }
 variable "image" {
   description = "URL to container image with Calibre and REST API"
-  default = "ghcr.io/pmalkiewicz/newsaas:main"
 }
 variable "smtp_username" {
   description = "Username of your email account that will be used to send emails with ebooks, for example user@example.com"

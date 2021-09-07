@@ -9,7 +9,7 @@ Documentation of this Calibre feature: https://manual.calibre-ebook.com/news.htm
 Documentation of Amazon Send to Kindle feature: https://www.amazon.com/gp/help/customer/display.html/ref=hp_left_v4_sib?ie=UTF8&nodeId=G7NECT4B4ZWHQ8WV
 
 **GCP free tier limits:**
-- Cloud Run - https://cloud.google.com/free/docs/gcp-free-tier/#cloud-run
+- Cloud Run (Only North American regions have free egress quota!) - https://cloud.google.com/free/docs/gcp-free-tier/#cloud-run
 - Cloud Scheduler - https://cloud.google.com/scheduler/pricing
 
 **The project consists of:**
@@ -25,12 +25,19 @@ It does not contain any authentication or authorization logic, the authenticatio
 
 ## Usage
 **Prerequisites:**
-- GCP account
+- GCP account and GCP project
 - Email account credentials with SMTP access added to "Approved Personal Document Email List" on Amazon website. Gmail might not be the best choice given security features blocking suspicious log-ins triggering on GCP ephemeral IPs.
+- Terraform (https://www.terraform.io/downloads.html), gcloud SDK (https://cloud.google.com/sdk/docs/install) and Docker (https://docs.docker.com/engine/install/) installed
 
 **Deployment:**
-1. Install Terraform (https://www.terraform.io/downloads.html) and Gcloud SDK (https://cloud.google.com/sdk/docs/install) 
-2. Clone this project
-3. Enter `terraform` directory and run `terraform init`
-4. Log into GCP with `gcloud auth application-default login`
-5. Run `terraform apply` and input the variables when prompted.
+1. Clone this project `git clone https://github.com/pmalkiewicz/newsaas.git`
+2. Given the lack of Cloud Run support for external container registries (https://cloud.google.com/run/docs/deploying#images) the ghcr.io URL cannot be passed to Cloud Run. GCP Container Registry or Artifact Registry needs to be used. Artifact Registry has only 500MB of free storage, which is unsufficient for calibre image (over 1.5GB). Container Registry (GCR) uses Cloud Storage, which offers 5GB of free storage. The image needs to be downloaded from ghcr.io and uploaded to GCR:
+- authenticate to GCP with gcloud SDK `gcloud auth login`
+- enable GCR API `gcloud services enable containerregistry.googleapis.com`
+- configure Docker command line tool authentication to GCR `gcloud auth configure-docker`
+- pull image from ghcr.io `docker image pull ghcr.io/pmalkiewicz/newsaas:main`
+- tag it with your GCR url `docker image tag ghcr.io/pmalkiewicz/newsaas:main gcr.io/GCP_PROJECT_NAME/newsaas`
+- push it to GCR `docker image push gcr.io/GCP_PROJECT_NAME/newsaas` and note the tag, it will be neeeded for `image` variable in terraform
+2. Enter `terraform` directory and run `terraform init`
+3. Log into GCP with `gcloud auth application-default login`
+4. Run `terraform apply` and input the variables when prompted.

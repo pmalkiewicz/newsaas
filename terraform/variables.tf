@@ -29,7 +29,7 @@ variable "timeout" {
   default = "600"
 }
 variable "schedule" {
-  description = "Cron-like syntax execution schedule, for example '0 7 * * 6' to execute the job every friday at 7am"
+  description = "Cron-like syntax execution schedule in UTC time zone, for example '0 7 * * 5' to execute the job every friday at 7am"
 }
 variable "recipe" {
   description = "Name of the built-in Calibre recipe, for example 'BBC News'"
@@ -37,4 +37,7 @@ variable "recipe" {
 variable "emails" {
   description = "List of emails to send ebook to, for example [\"email1@example.com\", \"email2@example.com\"]"
   type = list(string)
+}
+variable "app_engine_location_id" {
+  description = "Dummy App Engine app location, for example us-central"
 }

@@ -15,7 +15,8 @@ Documentation of Amazon Send to Kindle feature: https://www.amazon.com/gp/help/c
 **The project consists of:**
 - `container` folder with code for creation of a Docker image, which contains Calibre and wraps its headless version into Flask based REST API allowing GCP Cloud Run deployment. 
 The Docker image is built and published to ghcr.io (https://github.com/pmalkiewicz/newsaas/pkgs/container/newsaas) using Github actions, so there is no need to build it on your own, unless custom modifications are required.
-- `terraform` folder with IaaC code for GCP deployment of Cloud Run instance together with Cloud Scheduler to trigger news fetching and delivery
+- `terraform` folder with IaaC code for GCP deployment of Cloud Run instance together with Cloud Scheduler to trigger news fetching and delivery. 
+Dummy and empty App Engine app is also created as it is a Cloud Scheduler dependency (https://cloud.google.com/scheduler/docs#supported_regions)
 
 ## Security
 

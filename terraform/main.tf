@@ -69,7 +69,7 @@ resource "google_cloud_scheduler_job" "job" {
   }
 
   http_target {
-    http_method = "GET"
+    http_method = "POST"
     uri         = "${google_cloud_run_service.service.status[0].url}/run?recipe=${urlencode(var.recipe)}&email=${join("&email=", [for x in var.emails : urlencode(x)])}"
 
     oidc_token {

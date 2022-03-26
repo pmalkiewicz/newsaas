@@ -3,6 +3,11 @@ provider "google" {
   region = var.region
 }
 
+resource "google_project_service" "iam" {
+  project = var.project
+  service = "iam.googleapis.com"
+}
+
 resource "google_project_service" "cloud-run" {
   project = var.project
   service = "run.googleapis.com"
@@ -22,16 +27,19 @@ resource "google_project_service" "appengine" {
 resource "google_app_engine_application" "dummy" {
   project     = var.project
   location_id = var.app_engine_location_id
+  depends_on = [google_project_service.appengine]
 }
 
 resource "google_service_account" "cloud-run" {
   account_id = "${var.name}-cloud-run"
   display_name = "${var.name} Cloud Run Account"
+  depends_on = [google_project_service.iam]
 }
 
 resource "google_service_account" "cloud-scheduler" {
   account_id = "${var.name}-cloud-scheduler"
   display_name = "${var.name} Cloud Scheduler Account"
+  depends_on = [google_project_service.iam]
 }
 
 resource "google_project_iam_member" "cloud-scheduler-sa-binding" {
@@ -78,6 +86,7 @@ resource "google_cloud_run_service" "service" {
     percent         = 100
     latest_revision = true
   }
+  depends_on = [google_project_service.cloud-run]
 }
 
 resource "google_cloud_scheduler_job" "job" {
@@ -97,4 +106,5 @@ resource "google_cloud_scheduler_job" "job" {
       service_account_email = google_service_account.cloud-scheduler.email
     }
   }
+  depends_on = [google_project_service.cloud-scheduler]
 }

@@ -1,0 +1,125 @@
+name: GCP deployment
+on:
+  push:
+    branches: ['main']
+    
+env:
+  REGISTRY: gcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+
+jobs:
+  run-kics:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+      security-events: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        
+      - name: Mkdir results-dir
+        run: mkdir -p results-dir
+       
+      - name: run kics Scan
+        uses: checkmarx/kics-github-action@v1.4
+        with:
+          path: 'terraform'
+          ignore_on_exit: results
+          output_path: results-dir
+          output_formats: 'json,sarif'
+
+      - name: display kics results
+        run: cat results-dir/results.json
+          
+      - name: Upload SARIF file
+        uses: github/codeql-action/upload-sarif@v1
+        with:
+          sarif_file: results-dir/results.sarif
+          
+  build-and-push-container-image:
+    runs-on: ubuntu-latest
+    needs: run-kics
+    permissions:
+      contents: read
+      actions: read
+      packages: write
+      
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        
+      - name: Authenticate to GCP
+        uses: 'google-github-actions/auth@v0'
+        with:
+          credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
+
+      - name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v0'
+
+      - name: 'Use gcloud CLI to enable GCR API'
+        run: 'gcloud services enable containerregistry.googleapis.com'
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v1
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: _json_key
+          password: ${{ secrets.GCP_CREDENTIALS }}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v2
+        with:
+          context: container/
+          push: true
+          tags: ${{ env.REGISTRY }}/${{ secrets.GCP_PROJECT_NAME }}/newsaas:latest
+          
+  run_terraform:
+    runs-on: ubuntu-latest
+    needs: build-and-push-container-image
+    permissions:
+      contents: read
+      actions: read
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        
+      - name: Authenticate to GCP
+        uses: 'google-github-actions/auth@v0'
+        with:
+          credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
+
+      - name: 'Set up Cloud SDK'
+        uses: 'google-github-actions/setup-gcloud@v0'
+        
+      - name: 'Enable Cloud Resource Manager API' # https://github.com/hashicorp/terraform-provider-google/issues/6101
+        run: 'gcloud services enable cloudresourcemanager.googleapis.com'
+      
+      - name: 'Download tfvars file'
+        run: 'gsutil cp gs://${{ secrets.GCP_BUCKET_NAME }}/terraform.tfvars terraform/terraform.tfvars'
+        
+      - name: 'Download state config file'
+        run: 'gsutil cp gs://${{ secrets.GCP_BUCKET_NAME }}/state.tf terraform/state.tf'
+        
+      - name: 'Setup terraform'
+        uses: hashicorp/setup-terraform@v1
+        
+      - name: Terraform Init
+        working-directory: ./terraform
+        run: terraform init
+        
+      - name: Terraform Validate
+        working-directory: ./terraform
+        run: terraform validate -no-color
+
+      - name: Terraform Plan
+        working-directory: ./terraform
+        run: terraform plan -no-color
+        
+      - name: Terraform Apply
+        id: apply
+        working-directory: ./terraform
+        run: terraform apply -auto-approve

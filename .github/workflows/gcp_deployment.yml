@@ -2,6 +2,9 @@ name: GCP deployment
 on:
   push:
     branches: ['main']
+    paths:
+      - 'container/**'
+      - 'terraform/**'
     
 env:
   REGISTRY: gcr.io

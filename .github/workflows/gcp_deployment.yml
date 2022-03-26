@@ -26,6 +26,7 @@ jobs:
       - name: run kics Scan
         uses: checkmarx/kics-github-action@v1.4
         with:
+          path: 'terraform,container'
           ignore_on_exit: results
           output_path: results-dir
           output_formats: 'json,sarif'

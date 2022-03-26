@@ -1,4 +1,4 @@
-# Newsaas
+# NewsaaS
 News as a Service is a tool, which uses GCP free tier to automate creation and delivery of ebook magazines based on new articles downloaded from your favourite website with Calibre recipes. 
 Together with Kindle feature of ebook delivery via email it allows for an effortless subscription-like experience.
 

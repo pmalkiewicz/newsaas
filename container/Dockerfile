@@ -12,4 +12,7 @@ RUN apt-get update && apt-get install -y calibre python3-pip
     
 RUN pip install --no-cache-dir -r requirements.txt
 
+RUN useradd nonpriv
+USER nonpriv
+
 CMD exec gunicorn --bind :$PORT --workers 1 --threads 1 --timeout 0 main:app

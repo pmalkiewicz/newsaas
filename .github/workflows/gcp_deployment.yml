@@ -5,6 +5,7 @@ on:
     paths:
       - 'container/**'
       - 'terraform/**'
+      - 'github/workflows/**'
     
 env:
   REGISTRY: gcr.io

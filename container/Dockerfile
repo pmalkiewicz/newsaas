@@ -15,4 +15,6 @@ RUN pip install --no-cache-dir -r requirements.txt
 RUN useradd nonpriv
 USER nonpriv
 
+RUN chown nonpriv:nonpriv .
+
 CMD exec gunicorn --bind :$PORT --workers 1 --threads 1 --timeout 0 main:app

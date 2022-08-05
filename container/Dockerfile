@@ -12,7 +12,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y calibre python3
     
 RUN pip install --no-cache-dir -r requirements.txt
 
-RUN useradd nonpriv
+RUN useradd -m nonpriv
 
 RUN chown nonpriv:nonpriv .
 

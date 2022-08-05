@@ -13,8 +13,9 @@ RUN apt-get update && apt-get install --no-install-recommends -y calibre python3
 RUN pip install --no-cache-dir -r requirements.txt
 
 RUN useradd nonpriv
-USER nonpriv
 
 RUN chown nonpriv:nonpriv .
+
+USER nonpriv
 
 CMD exec gunicorn --bind :$PORT --workers 1 --threads 1 --timeout 0 main:app

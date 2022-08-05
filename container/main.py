@@ -33,7 +33,7 @@ def healthcheck():
 @app.route('/run', methods=['POST'])
 def run():
     recipe = request.values.get('recipe')
-    filename = recipe + '-' + datetime.today().strftime('%Y-%m-%d') + '.mobi'
+    filename = recipe + '-' + datetime.today().strftime('%Y-%m-%d') + '.epub'
     emails = request.values.getlist('email')
 
     print(f"Creating ebook from recipe {recipe} and sending it to {emails}")
